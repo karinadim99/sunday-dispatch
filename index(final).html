@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6e7260">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sunday Dispatch">
+<meta name="description" content="The Feel-Good Sunday Dispatch — All the Good News That Mattered This Week.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>The Feel-Good Sunday Dispatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=EB+Garamond:ital,wght@0,400;1,400&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; width: 100%;
+  background: #6e7260;
+  font-family: 'EB Garamond', Georgia, serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  touch-action: auto;
+  user-select: none;
+}
+
+/* ── CSS VARIABLES ── */
+:root {
+  --ink: #1a1612;
+  --ink-soft: #3d3830;
+  --ink-muted: #6b6358;
+  --paper: #f9f5ec;
+  --paper-warm: #f2ead8;
+  --paper-dark: #e8dfc8;
+  --rule: #c8b89a;
+  --rule-thick: #8b7355;
+  --accent: #8b1a1a;
+  --accent-gold: #b8860b;
+  --shelf: #1a1208;
+}
+
+/* ── SAGE GREEN BACKGROUND ── */
+#app {
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0.04) 0px, rgba(0,0,0,0.04) 1px,
+      transparent 1px, transparent 60px
+    ),
+    linear-gradient(180deg, #7a7d6a 0%, #5e6253 100%);
+  position: relative;
+}
+
+/* ── NEWSPAPER MASTHEAD BAR (above book) ── */
+#app-header {
+  width: 100%;
+  max-width: 700px;
+  padding: 7px 16px 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-shrink: 0;
+}
+#next-edition {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(9px, 2vw, 11px);
+  color: #d4c98a;
+  letter-spacing: 0.06em;
+  text-align: right;
+}
+
+/* ── BOOK CONTAINER ── */
+#book-wrap {
+  width: 100%;
+  max-width: 700px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 2600px;
+  perspective-origin: 50% 46%;
+  padding: 0 12px;
+  position: relative;
+  touch-action: pan-x;
+}
+
+/* ── THE BOOK ── */
+#book {
+  width: 100%;
+  max-width: 680px;
+  height: min(88vh, 560px);
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* ── BOOK SPINE SHADOW ── */
+#book::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 16px;
+  transform: translateX(-50%);
+  background: linear-gradient(to right,
+    rgba(0,0,0,0.35) 0%,
+    rgba(0,0,0,0.08) 40%,
+    rgba(0,0,0,0.08) 60%,
+    rgba(0,0,0,0.35) 100%
+  );
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* ── PAGE BASE ── */
+.page {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  background: var(--paper);
+  overflow: visible;
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+.page.left-page {
+  left: 0;
+  transform-origin: right center;
+  border-radius: 3px 0 0 3px;
+  box-shadow: -2px 0 14px rgba(0,0,0,0.28), inset -5px 0 16px rgba(0,0,0,0.06);
+}
+
+.page.right-page {
+  left: 50%;
+  transform-origin: left center;
+  border-radius: 0 3px 3px 0;
+  box-shadow: 2px 0 14px rgba(0,0,0,0.28), inset 5px 0 16px rgba(0,0,0,0.06);
+}
+
+/* ── PAGE INNER CONTENT (front face) ── */
+.page-inner {
+  position: absolute;
+  inset: 0;
+  padding: 14px 13px 52px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: inherit;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  touch-action: pan-y;
+}
+/* Thin subtle scrollbar that doesn't break the newspaper feel */
+.page-inner::-webkit-scrollbar {
+  width: 3px;
+}
+.page-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+.page-inner::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 2px;
+}
+.page-inner::-webkit-scrollbar-thumb:hover {
+  background: var(--rule-thick);
+}
+/* SVGs inside pages must never exceed their container */
+.page-inner svg {
+  max-width: 100%;
+  flex-shrink: 0;
+  display: block;
+}
+/* Body text flows naturally — no shrinking or hiding */
+.page-inner .body-text {
+  flex-shrink: 0;
+}
+
+/* ── PAGE BACK FACE ── */
+.page-back-face {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-warm);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg);
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: repeating-linear-gradient(
+    transparent, transparent 27px,
+    rgba(160,140,100,0.10) 27px, rgba(160,140,100,0.10) 28px
+  );
+}
+
+/* ── DYNAMIC SHADOW OVERLAY ── */
+.flip-shadow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  border-radius: inherit;
+  background: transparent;
+}
+
+/* ── PAPER TEXTURE (subtle warm tone variation only) ── */
+
+/* ── PAGE CORNER FLIP TRIGGER ── */
+.flip-corner {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 48px; height: 48px;
+  z-index: 500;
+  cursor: pointer;
+}
+.flip-corner::before {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 0 38px 38px;
+  border-color: transparent transparent var(--rule-thick) transparent;
+  transition: border-width 0.2s ease;
+}
+.flip-corner::after {
+  content: '›';
+  position: absolute;
+  bottom: 8px; right: 6px;
+  font-size: 14px;
+  color: var(--paper);
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+}
+.flip-corner:hover::before {
+  border-width: 0 0 48px 48px;
+  border-color: transparent transparent var(--accent) transparent;
+}
+
+/* Back corner (prev page) — left side */
+.flip-corner-back {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 48px; height: 48px;
+  z-index: 500;
+  cursor: pointer;
+}
+.flip-corner-back::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 38px 38px 0 0;
+  border-color: var(--rule-thick) transparent transparent transparent;
+  transition: border-width 0.2s ease;
+}
+.flip-corner-back::after {
+  content: '‹';
+  position: absolute;
+  bottom: 8px; left: 6px;
+  font-size: 14px;
+  color: var(--paper);
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 600;
+}
+.flip-corner-back:hover::before {
+  border-width: 48px 48px 0 0;
+  border-color: var(--accent) transparent transparent transparent;
+}
+
+/* ── RUNNING HEAD — full masthead on inner pages replaced by slim section bar ── */
+.mh-mini {
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 3px 0 4px;
+  margin-bottom: 7px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-shrink: 0;
+}
+.mh-mini-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(11px, 2.5vw, 15px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.mh-mini-meta {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(7px, 1.5vw, 9px);
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+/* Slim section-only header for inner pages (no title repeat) */
+.section-bar {
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 3px 0 3px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-shrink: 0;
+}
+.section-bar-left {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(7px, 1.5vw, 9px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.section-bar-right {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6.5px, 1.3vw, 8px);
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+}
+
+.section-label {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6px, 1.3vw, 7.5px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--rule-thick);
+  padding-bottom: 2px;
+  margin-bottom: 3px;
+  flex-shrink: 0;
+}
+
+/* ── SOURCE LINE — sits one row below each story ── */
+.source-line {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6px, 1.2vw, 7.5px);
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  padding-top: 2px;
+  border-top: 0.5px solid var(--rule);
+  flex-shrink: 0;
+}
+
+.article-kicker {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6px, 1.3vw, 7.5px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1px;
+}
+
+.article-hl {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  line-height: 1.14;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.hl-xl { font-size: clamp(15px, 3.2vw, 20px); }
+.hl-lg { font-size: clamp(13px, 2.5vw, 16px); }
+.hl-md { font-size: clamp(11.5px, 2.1vw, 14px); }
+.hl-sm { font-size: clamp(10.5px, 1.9vw, 12.5px); }
+.hl-xs { font-size: clamp(9.5px, 1.7vw, 11px); }
+
+.dateline {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6px, 1.2vw, 7.5px);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--paper);
+  background: var(--ink-soft);
+  display: inline-block;
+  padding: 1px 5px;
+  margin-bottom: 3px;
+}
+
+.body-text {
+  font-family: 'EB Garamond', serif;
+  font-size: clamp(9.5px, 1.85vw, 12px);
+  line-height: 1.52;
+  color: var(--ink-soft);
+}
+.body-text p { margin-bottom: 0.4em; }
+
+.rule-h { height: 1px; background: var(--rule); margin: 5px 0; }
+.rule-thick-h { height: 2px; background: var(--ink); margin: 5px 0; }
+
+.pullquote {
+  border-top: 2px solid var(--accent);
+  border-bottom: 1px solid var(--rule-thick);
+  padding: 5px 0 4px;
+  margin: 5px 0;
+}
+.pullquote-text {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: clamp(9.5px, 1.8vw, 12px);
+  line-height: 1.3;
+  color: var(--ink);
+}
+.pullquote-src {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6.5px, 1.2vw, 8px);
+  color: var(--ink-muted);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+.infobox {
+  background: var(--paper-dark);
+  border: 1px solid var(--rule-thick);
+  padding: 5px 8px;
+  margin: 5px 0;
+}
+.infobox-title {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6px, 1.2vw, 7.5px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.infobox ul {
+  list-style: none;
+  font-family: 'EB Garamond', serif;
+  font-size: clamp(9px, 1.7vw, 11px);
+  line-height: 1.38;
+  color: var(--ink-soft);
+}
+.infobox ul li {
+  padding: 3px 0 3px 10px;
+  position: relative;
+  border-bottom: 0.5px solid var(--rule);
+}
+.infobox ul li:last-child { border-bottom: none; }
+.infobox ul li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 8px;
+  width: 4px; height: 4px;
+  background: var(--accent-gold);
+  border-radius: 50%;
+}
+
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.col-rule { border-left: 1px solid var(--rule); padding-left: 10px; }
+
+
+
+/* ornament */
+.orn { text-align: center; color: var(--rule-thick); font-size: 11px; letter-spacing: 4px; margin: 5px 0; }
+
+/* ── BOTTOM NAV ── */
+#nav-bar {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 10px;
+  flex-shrink: 0;
+}
+.nav-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(242,234,216,0.22);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.nav-dot.active { background: var(--accent-gold); transform: scale(1.3); }
+.nav-dot:hover { background: rgba(242,234,216,0.55); }
+
+#page-indicator {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 9px;
+  color: rgba(242,234,216,0.55);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  padding-bottom: 2px;
+  flex-shrink: 0;
+}
+
+/* ── SPLASH / COVER ── */
+#cover-left, #cover-right { background: var(--ink); }
+#cover-left .page-inner, #cover-right .page-inner {
+  background: var(--ink);
+}
+
+/* ── TOP-10 ITEM ── */
+.t10 {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  padding: 3px 0;
+  border-bottom: 0.5px solid var(--rule);
+  flex-shrink: 0;
+}
+.t10:last-child { border-bottom: none; }
+.t10-n {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(16px, 3vw, 20px);
+  font-weight: 900;
+  color: var(--paper-dark);
+  -webkit-text-stroke: 1px var(--rule-thick);
+  line-height: 1;
+  min-width: 20px;
+}
+.t10-h {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(8.5px, 1.6vw, 10.5px);
+  font-weight: 700;
+  line-height: 1.18;
+  color: var(--ink);
+  margin-bottom: 1px;
+}
+.t10-s {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: clamp(6.5px, 1.2vw, 8px);
+  color: var(--ink-muted);
+  line-height: 1.25;
+}
+
+/* ── SWIPE HINT ── */
+#swipe-hint {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 10px;
+  color: rgba(242,234,216,0.45);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: fadeHint 3s ease 2s forwards;
+  white-space: nowrap;
+}
+@keyframes fadeHint {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── LOADING ── */
+#loading {
+  position: fixed;
+  inset: 0;
+  background: #5e6253;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.6s;
+}
+#loading-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 6vw, 34px);
+  font-weight: 900;
+  color: #f2ead8;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+#loading-sub {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: clamp(11px, 2.5vw, 15px);
+  color: #d4c98a;
+  margin-top: 8px;
+  text-align: center;
+}
+#loading-bar {
+  margin-top: 24px;
+  width: 160px;
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  position: relative;
+  overflow: hidden;
+}
+#loading-fill {
+  position: absolute;
+  top: 0; left: -100%;
+  height: 100%;
+  width: 100%;
+  background: #d4c98a;
+  animation: loadBar 1.4s ease 0.3s forwards;
+}
+@keyframes loadBar {
+  to { left: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loading">
+  <div id="loading-title">The Feel-Good<br>Sunday Dispatch</div>
+  <div id="loading-sub">All the Good News That Mattered This Week</div>
+  <div id="loading-bar"><div id="loading-fill"></div></div>
+</div>
+
+<div id="app">
+  <!-- HEADER -->
+  <div id="app-header">
+    <div id="edition-vol" style="font-family:'Source Sans 3',sans-serif;font-size:clamp(9px,2vw,11px);color:rgba(242,234,216,0.6);letter-spacing:.08em;">Vol. I &middot; No. 1 &middot; 21 March 2026</div>
+    <div id="next-edition">Vol. 2 &middot; Sun 29 Mar &middot; 10:00 GMT+2</div>
+  </div>
+
+  <!-- BOOK -->
+  <div id="book-wrap">
+    <div id="book">
+      <!-- Pages are injected by JS -->
+    </div>
+    <div id="swipe-hint">tap corner to turn page</div>
+  </div>
+
+  <!-- NAV DOTS -->
+  <div id="page-indicator">Spread <span id="cur-pg">1</span> of <span id="tot-pg">7</span></div>
+  <div id="nav-bar"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// PAGE CONTENT DATA
+// Each spread = { left: html, right: html }
+// ─────────────────────────────────────────
+const spreads = [
+
+// SPREAD 0: COVER
+{
+left: `<div class="page-inner" style="background:#1a1612;justify-content:center;align-items:center;text-align:center;">
+  <div style="padding:20px;">
+    <div style="font-family:'Source Sans 3',sans-serif;font-size:8px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#8b7355;margin-bottom:12px;">Vol. I · No. 1 · 21 March 2026</div>
+    <div style="font-family:'Playfair Display',serif;font-size:clamp(22px,5vw,34px);font-weight:900;color:#f2ead8;line-height:.95;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:8px;">The Feel-Good<br>Sunday<br>Dispatch</div>
+    <div style="height:1px;background:#8b7355;margin:12px auto;width:80px;"></div>
+    <div style="font-family:'EB Garamond',serif;font-style:italic;font-size:clamp(10px,2vw,13px);color:#8b7355;line-height:1.5;">All the Good News<br>That Mattered<br>This Week</div>
+    <div style="height:1px;background:#8b7355;margin:12px auto;width:80px;"></div>
+    <div style="font-family:'Source Sans 3',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#6b5c3e;margin-top:10px;">Inaugural Edition</div>
+    <div style="margin-top:18px;font-family:'Source Sans 3',sans-serif;font-size:7px;color:#4a3a28;letter-spacing:.08em;text-transform:uppercase;background:#2a1e10;padding:4px 10px;display:inline-block;">All stories verified · No advertising</div>
+  </div>
+</div>`,
+right: `<div class="page-inner" style="background:#1a1612;justify-content:flex-start;padding:20px 16px;">
+  <div style="border-top:3px solid #8b1a1a;border-bottom:1px solid #4a3a28;padding:6px 0;margin-bottom:14px;">
+    <div style="font-family:'Source Sans 3',sans-serif;font-size:7.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#8b7355;">Inside this edition</div>
+  </div>
+  <div style="font-family:'EB Garamond',serif;color:#c8b89a;">
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #2a2010;">
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(11px,2vw,14px);font-weight:700;color:#f2ead8;margin-bottom:2px;">Clean Energy Milestone</div>
+      <div style="font-size:clamp(9px,1.7vw,11px);color:#8b7355;">The world installed more clean power in 2025 than at any point in human history — 814 gigawatts of wind and solar in a single year.</div>
+    </div>
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #2a2010;">
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(11px,2vw,14px);font-weight:700;color:#f2ead8;margin-bottom:2px;">Nature Fights Back</div>
+      <div style="font-size:clamp(9px,1.7vw,11px);color:#8b7355;">From Cairngorms wildcats to Kazakh antelopes — species returning from the edge, on every continent.</div>
+    </div>
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #2a2010;">
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(11px,2vw,14px);font-weight:700;color:#f2ead8;margin-bottom:2px;">Webb's New Worlds</div>
+      <div style="font-size:clamp(9px,1.7vw,11px);color:#8b7355;">A planet with a diamond interior. A world with a magma ocean. Both discovered this week by the James Webb Space Telescope.</div>
+    </div>
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #2a2010;">
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(11px,2vw,14px);font-weight:700;color:#f2ead8;margin-bottom:2px;">Medicine's Quiet Revolution</div>
+      <div style="font-size:clamp(9px,1.7vw,11px);color:#8b7355;">CAR-T cancer survivors a decade on. A non-addictive painkiller. The Nobel Prize science that will save millions.</div>
+    </div>
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(11px,2vw,14px);font-weight:700;color:#f2ead8;margin-bottom:2px;">The Top 10 Wins</div>
+      <div style="font-size:clamp(9px,1.7vw,11px);color:#8b7355;">Ten verified breakthroughs, sourced to city, country and date — the week's best news from around the world.</div>
+    </div>
+  </div>
+  <div style="margin-top:auto;padding-top:10px;border-top:1px solid #2a2010;font-family:'Source Sans 3',sans-serif;font-size:7px;color:#4a3a28;letter-spacing:.1em;text-transform:uppercase;">
+    Vol. 2 · Sunday 29 March 2026 · 10:00 GMT+2
+  </div>
+</div>`
+},
+
+// SPREAD 1: FRONT PAGE — THIS WEEK'S LEAD STORIES
+{
+left: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Front Page · Medicine</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Medicine</div>
+  <div class="article-kicker">Medical First</div>
+  <div class="article-hl hl-lg">A man survived 48 hours with no lungs — and is now living normally</div>
+  <div class="dateline">Chicago, Illinois, USA · 18 March 2026</div>
+  <div class="rule-h"></div>
+  <svg style="width:100%;height:72px;display:block;border:1px solid var(--rule);margin-bottom:5px;" viewBox="0 0 280 72" xmlns="http://www.w3.org/2000/svg">
+    <rect width="280" height="72" fill="#f2ead8"/>
+    <path d="M100 8 Q140 4 180 8 L188 62 Q140 70 92 62 Z" fill="#e8dfc8" stroke="#c8b89a" stroke-width="1"/>
+    <rect x="28" y="22" width="50" height="34" fill="#e0e8f0" stroke="#6080a0" stroke-width="1" rx="3"/>
+    <text x="53" y="36" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-size="6.5" fill="#2a4b8d" font-weight="600">ARTIFICIAL</text>
+    <text x="53" y="45" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-size="6.5" fill="#2a4b8d" font-weight="600">LUNG SYSTEM</text>
+    <path d="M78 38 Q93 36 103 40" stroke="#6080a0" stroke-width="1.5" fill="none"/>
+    <path d="M78 46 Q93 48 103 46" stroke="#6080a0" stroke-width="1.5" fill="none"/>
+    <polyline points="198,40 208,40 212,30 216,50 220,34 224,46 228,40 240,40" fill="none" stroke="#8b1a1a" stroke-width="1.2"/>
+    <text x="140" y="68" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-size="6.5" fill="#6b5c3e" font-weight="600" letter-spacing=".08em">NORTHWESTERN MEDICINE · CHICAGO · 18 MAR 2026</text>
+  </svg>
+  <div class="body-text">
+    <p>Surgeons at Northwestern Medicine removed a 33-year-old man's diseased lungs entirely after a severe flu infection destroyed them. An artificial lung system kept him alive for 48 hours — then a double transplant saved his life. He is now living normally, more than two years on.</p>
+    <p>The peer-reviewed case, published this week in <em>Med</em> (Cell Press), establishes a new "bridge to transplant" strategy for the most critical lung failures ever seen. Source: Cell Press / ScienceDaily, Chicago, 18 March 2026.</p>
+  </div>
+</div>`,
+right: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Front Page · Clean Energy</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Clean Energy · USA</div>
+  <div class="article-kicker">Wind Power</div>
+  <div class="article-hl hl-lg">Against all odds, America's biggest offshore wind farm completed construction this week</div>
+  <div class="dateline">Martha's Vineyard, Massachusetts, USA · 13–16 March 2026</div>
+  <div class="rule-h"></div>
+  <svg style="width:100%;height:72px;display:block;border:1px solid var(--rule);margin-bottom:5px;" viewBox="0 0 280 72" xmlns="http://www.w3.org/2000/svg">
+    <rect width="280" height="72" fill="#b8d4e8"/>
+    <rect y="46" width="280" height="26" fill="#1a6080"/>
+    <path d="M0 49 Q70 44 140 49 Q210 54 280 49" fill="none" stroke="#80b8d0" stroke-width="1.2"/>
+    <g fill="#2a3a50" stroke="#1a2a40" stroke-width=".5">
+      <rect x="28" y="18" width="3" height="30"/><rect x="76" y="22" width="3" height="26"/>
+      <rect x="130" y="16" width="3" height="32"/><rect x="184" y="20" width="3" height="28"/>
+      <rect x="234" y="18" width="3" height="30"/>
+    </g>
+    <g stroke="#2a3a50" stroke-width="1.2" fill="none">
+      <line x1="29" y1="18" x2="29" y2="6"/><line x1="29" y1="18" x2="19" y2="25"/><line x1="29" y1="18" x2="39" y2="25"/>
+      <line x1="77" y1="22" x2="77" y2="10"/><line x1="77" y1="22" x2="67" y2="29"/><line x1="77" y1="22" x2="87" y2="29"/>
+      <line x1="131" y1="16" x2="131" y2="4"/><line x1="131" y1="16" x2="121" y2="23"/><line x1="131" y1="16" x2="141" y2="23"/>
+      <line x1="185" y1="20" x2="185" y2="8"/><line x1="185" y1="20" x2="175" y2="27"/><line x1="185" y1="20" x2="195" y2="27"/>
+      <line x1="235" y1="18" x2="235" y2="6"/><line x1="235" y1="18" x2="225" y2="25"/><line x1="235" y1="18" x2="245" y2="25"/>
+    </g>
+    <text x="140" y="68" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-size="6.5" fill="#80c0d8" font-weight="600" letter-spacing=".08em">VINEYARD WIND · 62 TURBINES · 800 MW · 400,000 HOMES</text>
+  </svg>
+  <div class="body-text">
+    <p>Vineyard Wind — 15 miles south of Martha's Vineyard — completed its 62nd and final turbine on 13 March 2026. The 800-megawatt farm will power 400,000 homes and save Massachusetts ratepayers an estimated $1.4 billion over 20 years.</p>
+    <p>The project survived two Trump-era stop-work orders and multiple federal lawsuits. Developers won in court every time.</p>
+  </div>
+  <div class="source-line">AP / WBUR / Boston Globe &middot; Martha's Vineyard, Massachusetts, USA &middot; 13&ndash;16 March 2026</div>
+  <div class="pullquote">
+    <div class="pullquote-text">"Clean, reliable power — a long time coming."</div>
+    <div class="pullquote-src">— National Wildlife Federation · 14 March 2026</div>
+  </div>
+</div>`
+},
+
+// SPREAD 2: SCIENCE — ALL THIS WEEK
+{
+left: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Science &amp; Discovery</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Particle Physics · CERN</div>
+  <div class="article-kicker">New Particle</div>
+  <div class="article-hl hl-md">CERN discovers an 80th particle — the doubly charmed baryon that puzzled physicists for 20 years</div>
+  <div class="dateline">Geneva, Switzerland · 17 March 2026</div>
+  <div class="rule-h"></div>
+  <svg style="width:100%;height:62px;display:block;border:1px solid var(--rule);margin-bottom:5px;" viewBox="0 0 280 62" xmlns="http://www.w3.org/2000/svg">
+    <rect width="280" height="62" fill="#0e0e1a"/>
+    <circle cx="140" cy="30" r="24" fill="none" stroke="#3a4a6a" stroke-width="3"/>
+    <circle cx="140" cy="30" r="24" fill="none" stroke="#5060a0" stroke-width="1" stroke-dasharray="4,3"/>
+    <circle cx="140" cy="30" r="4" fill="#f0c040"/>
+    <line x1="140" y1="30" x2="162" y2="12" stroke="#e05020" stroke-width="1.2" opacity=".8"/>
+    <line x1="140" y1="30" x2="120" y2="10" stroke="#e05020" stroke-width="1" opacity=".7"/>
+    <line x1="140" y1="30" x2="165" y2="46" stroke="#40a0e0" stroke-width="1.2" opacity=".8"/>
+    <line x1="140" y1="30" x2="116" y2="50" stroke="#40a0e0" stroke-width="1" opacity=".7"/>
+    <line x1="140" y1="30" x2="172" y2="30" stroke="#e0e040" stroke-width="1.5" opacity=".9"/>
+    <line x1="140" y1="30" x2="108" y2="30" stroke="#e0e040" stroke-width="1.5" opacity=".9"/>
+    <text x="140" y="58" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-size="7" fill="#8080c0" font-weight="600" letter-spacing=".08em">Ξcc⁺ BARYON · LHCb · CERN, GENEVA · 17 MAR 2026</text>
+  </svg>
+  <div class="body-text">
+    <p>Physicists at CERN's LHCb experiment discovered the Ξcc⁺ baryon — containing two charm quarks, four times heavier than a proton. Only the second two-heavy-quark particle ever found, it resolves a discrepancy that puzzled physicists for 20 years. The 80th particle discovered at the LHC.</p>
+  </div>
+  <div class="source-line">CERN LHCb / Scientific American &middot; Geneva, Switzerland &middot; 17 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="section-label">Quantum Computing</div>
+  <div class="article-kicker">Computing</div>
+  <div class="article-hl hl-xs">Quantum chips simulated with 7,000 GPUs before building — eliminating years of trial and error</div>
+  <div class="dateline">ScienceDaily · 17 March 2026</div>
+  <div class="body-text"><p>Researchers modelled the complete physical behaviour of quantum chips before fabrication — dramatically improving reliability and cutting design cycles from years to weeks.</p></div>
+  <div class="source-line">ScienceDaily &middot; 17 March 2026</div>
+</div>`,
+right: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Science &amp; Discovery</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Astronomy</div>
+  <div class="article-kicker">Space Discovery</div>
+  <div class="article-hl hl-md">A new type of planet found — a magma ocean world unlike anything in our solar system</div>
+  <div class="dateline">Oxford, United Kingdom · 17 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="body-text">
+    <p>Dr Harrison Nicholls at Oxford identified planet L 98-59 d — 1.6 times Earth's size but too light to be solid rock. Computer simulations spanning 5 billion years reveal a hidden ocean of molten sulphur-rich rock beneath its surface. A planetary type never before identified.</p>
+  </div>
+  <div class="source-line">Nature Astronomy &middot; University of Oxford, UK &middot; 17 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="section-label">Palaeontology</div>
+  <div class="article-kicker">Fossil Discovery</div>
+  <div class="article-hl hl-sm">Scientists find a hidden granite continent buried beneath Antarctica — rewriting the planet's geological history</div>
+  <div class="dateline">Hudson Mountains, Antarctica · 18 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="body-text">
+    <p>An unexpected cluster of pink granite boulders sitting atop the Hudson Mountains caught the attention of a British Antarctic Survey team this week. Granite of this kind cannot form under the conditions present on the surface — it requires the deep heat and pressure of an ancient continental interior.</p>
+    <p>Further analysis confirmed the find: an enormous granite mass buried beneath Pine Island Glacier, the remnant of a landmass that existed long before the ice sheet formed. It is the first evidence of a previously unknown ancient continental structure beneath the Antarctic ice — and it rewrites what geologists believed they knew about the deep history of the southern continent.</p>
+  </div>
+  <div class="source-line">ScienceDaily &middot; British Antarctic Survey &middot; 18 March 2026</div>
+</div>`
+},
+
+// SPREAD 3: ENVIRONMENT & CITIES — THIS WEEK
+{
+left: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Environment &amp; Earth</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Air Quality · Global</div>
+  <div class="article-kicker">Cities Breathe Easier</div>
+  <div class="article-hl hl-md">19 cities cut air pollution by up to 40% in 15 years — Beijing, London and Paris lead the world</div>
+  <div class="dateline">London, United Kingdom · 20 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="body-text">
+    <p>A report by Breathe Cities found 19 major cities — including Beijing, London, Paris, Berlin, Rome and San Francisco — cut air pollution by 20–40% in 15 years. Nearly half were in Asia, improving despite rapid economic growth. Cycling infrastructure, clean air zones and electric vehicles were the main drivers.</p>
+    <p><em>"The pathway to cleaner air has been tested at scale — now it's about enabling more cities to follow it,"</em> said executive director Cecilia Vaca Jones.</p>
+  </div>
+  <div class="source-line">Breathe Cities / Positive News &middot; London, UK &middot; 20 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="article-kicker">Conservation · Uganda</div>
+  <div class="article-hl hl-xs">Uganda begins historic return of rhinos to Kidepo Valley National Park</div>
+  <div class="dateline">Kampala, Uganda · 17 March 2026</div>
+  <div class="body-text"><p>The Uganda Wildlife Authority began rhino translocation to Kidepo Valley — restoring a species absent from the region for decades.</p></div>
+  <div class="source-line">Uganda Wildlife Authority &middot; Kampala, Uganda &middot; 17 March 2026</div>
+</div>`,
+right: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Environment &amp; Earth</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Energy · Global</div>
+  <div class="article-kicker">Renewables Surge</div>
+  <div class="article-hl hl-md">Middle East crisis is accelerating the global clean energy transition, world leaders say</div>
+  <div class="dateline">Brussels, Belgium &amp; Seoul, South Korea · 16–20 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="body-text">
+    <p>South Korea's president called the Middle East crisis an "opportunity to swiftly transition to renewable energy." The EU's Teresa Ribera agreed: "The real risk is not moving too fast on clean energy, but too slowly." UN Secretary-General Guterres added: "There are no price spikes for sunlight and no embargoes on the wind."</p>
+  </div>
+  <div class="source-line">Positive News / Financial Times &middot; 20 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="article-kicker">Women's Rights</div>
+  <div class="article-hl hl-xs">Global agreement at the UN to strengthen justice for women and girls</div>
+  <div class="dateline">New York, USA · 17–21 March 2026</div>
+  <div class="body-text"><p>At the 70th Commission on the Status of Women, nations committed to tackling the main drivers of female incarceration — poverty, violence and discriminatory laws — providing "a roadmap to build more inclusive governance," said UN Women.</p></div>
+  <div class="source-line">Positive News / UN Women &middot; New York, USA &middot; 17–21 March 2026</div>
+</div>`
+},
+
+// SPREAD 4: HEALTH THIS WEEK
+{
+left: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Health &amp; Medicine</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Medicine · Weight Loss Research</div>
+  <div class="article-kicker">Good News for Millions</div>
+  <div class="article-hl hl-md">Stopping Ozempic does not cause dramatic weight rebound, large real-world study finds</div>
+  <div class="dateline">Multiple US Health Systems · ScienceDaily · 19 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="body-text">
+    <p>A study of 8,000 patients found most people who stop Ozempic or Mounjaro keep the weight off — contradicting fears of dramatic rebound.</p>
+  </div>
+  <div class="source-line">ScienceDaily &middot; 19 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="article-kicker">Exercise Science</div>
+  <div class="article-hl hl-xs">Any resistance training improves strength and lifespan — start anywhere, it counts</div>
+  <div class="dateline">ScienceDaily · 19 March 2026</div>
+  <div class="body-text"><p>New guidelines confirm even the simplest strength routines deliver meaningful gains in muscle, strength and long-term health. The message is simple: start anywhere, and it counts.</p></div>
+  <div class="source-line">ScienceDaily &middot; 19 March 2026</div>
+  <div class="rule-h"></div>
+  <div class="article-kicker">Prevention</div>
+  <div class="article-hl hl-xs">Gum disease bacteria found to reach breast tissue — a path to prevention identified</div>
+  <div class="dateline">ScienceDaily · 19 March 2026</div>
+  <div class="body-text"><p>A bacterium linked to gum disease travels to breast tissue via the bloodstream, driving DNA damage. Understanding the mechanism opens new prevention strategies.</p></div>
+  <div class="source-line">ScienceDaily &middot; 19 March 2026</div>
+</div>`,
+right: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">Health &amp; Humanity</div>
+    <div class="section-bar-right">21 Mar 2026</div>
+  </div>
+  <div class="section-label">Foetal Surgery · UC Davis</div>
+  <div class="article-kicker">Surgery</div>
+  <div class="article-hl hl-md">Stem cells in the womb improve outcomes for spina bifida children, trial shows</div>
+  <div class="dateline">Davis, California, USA · March 2026</div>
+  <div class="rule-h"></div>
+  <div class="body-text">
+    <p>Diana Farmer at UC Davis showed placental stem cells applied during in-womb surgery improved mobility in children with spina bifida. &ldquo;This paves the way for new treatment options,&rdquo; said Farmer.</p>
+  </div>
+  <div class="source-line">Positive News &middot; UC Davis, California, USA &middot; March 2026</div>
+  <div class="rule-h"></div>
+  <div class="article-kicker">Fossil Science</div>
+  <div class="article-hl hl-xs">Most complete Homo habilis skeleton analysed — fills a gap in human evolution</div>
+  <div class="dateline">Nairobi, Kenya · 16 March 2026</div>
+  <div class="body-text"><p>A full analysis of KNM-ER 64061 — the most complete known <em>Homo habilis</em> skeleton — clarifies early human anatomy at a key evolutionary turning point.</p></div>
+  <div class="source-line">Journal of Human Evolution &middot; Nairobi, Kenya &middot; March 2026</div>
+  <div class="rule-h"></div>
+  <div class="article-kicker">Computing</div>
+  <div class="article-hl hl-xs">Turing Award — the Nobel of computing — goes to quantum cryptography pioneers</div>
+  <div class="dateline">ACM · New York, USA · 18 March 2026</div>
+  <div class="body-text"><p>Bennett and Brassard receive the 2025 Turing Award for founding quantum cryptography — now the basis of secure communication worldwide.</p></div>
+  <div class="source-line">ACM &middot; New York, USA &middot; 18 March 2026</div>
+</div>`
+},
+
+// SPREAD 5: TOP 10 THIS WEEK
+{
+left: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">The Week's Top 10 Wins</div>
+    <div class="section-bar-right">16–21 Mar 2026</div>
+  </div>
+  <div class="section-label">The 10 most significant verified good-news stories of this exact week</div>
+  <div class="t10"><div class="t10-n">1</div><div><div class="t10-h">Man survives 48 hours without lungs — a world first in surgery, now living normally</div><div class="t10-s">Medicine · Northwestern Medicine, Chicago, USA · 18 Mar 2026</div></div></div>
+  <div class="t10"><div class="t10-n">2</div><div><div class="t10-h">CERN discovers 80th particle at the LHC — the doubly charmed Ξcc⁺ baryon, resolving a 20-year mystery</div><div class="t10-s">Physics · CERN LHCb, Geneva, Switzerland · 17 Mar 2026</div></div></div>
+  <div class="t10"><div class="t10-n">3</div><div><div class="t10-h">Vineyard Wind completes construction — 62 turbines, 800 MW, 400,000 US homes powered by clean energy</div><div class="t10-s">Energy · Martha's Vineyard, Massachusetts, USA · 13–16 Mar 2026</div></div></div>
+  <div class="t10"><div class="t10-n">4</div><div><div class="t10-h">New planet type discovered — magma ocean world unlike anything seen in our solar system</div><div class="t10-s">Space · University of Oxford, Oxford, UK · 17 Mar 2026</div></div></div>
+  <div class="t10"><div class="t10-n">5</div><div><div class="t10-h">19 cities slashed air pollution 20–40% in 15 years — Beijing, London and Paris lead the world</div><div class="t10-s">Environment · Breathe Cities, London, UK · 20 Mar 2026</div></div></div>
+</div>`,
+right: `<div class="page-inner">
+  <div class="section-bar">
+    <div class="section-bar-left">The Week's Top 10 Wins</div>
+    <div class="section-bar-right">16–21 Mar 2026</div>
+  </div>
+  <div class="t10"><div class="t10-n">6</div><div><div class="t10-h">Stopping Ozempic does not cause dramatic rebound — 8,000-patient study reassures millions</div><div class="t10-s">Health · ScienceDaily · 19 Mar 2026</div></div></div>
+  <div class="t10"><div class="t10-n">7</div><div><div class="t10-h">Uganda begins historic rhino return to Kidepo Valley National Park</div><div class="t10-s">Wildlife · Uganda Wildlife Authority, Kampala · 17 Mar 2026</div></div></div>
+  <div class="t10"><div class="t10-n">8</div><div><div class="t10-h">Middle East crisis accelerating global renewables race — world leaders call clean energy a "shield"</div><div class="t10-s">Energy · Positive News / FT · 20 Mar 2026</div></div></div>
+  <div class="t10"><div class="t10-n">9</div><div><div class="t10-h">UN global agreement to strengthen justice for women and girls — CSW70 roadmap adopted</div><div class="t10-s">Society · UN Women, New York · 17–21 Mar 2026</div></div></div>
+  <div class="t10" style="border-bottom:none;"><div class="t10-n">10</div><div><div class="t10-h">Turing Award to quantum computing pioneers Bennett &amp; Brassard — the Nobel of computer science</div><div class="t10-s">Computing · ACM, New York · 18 Mar 2026</div></div></div>
+  <div style="border-top:1px solid var(--rule);padding-top:5px;margin-top:auto;">
+    <div style="font-family:'Source Sans 3',sans-serif;font-size:clamp(6px,1.1vw,7.5px);color:var(--accent-gold);letter-spacing:.1em;text-transform:uppercase;text-align:center;">Vol. 2 &middot; Sunday 29 March 2026 &middot; 10:00 GMT+2</div>
+  </div>
+</div>`
+},
+
+// SPREAD 6: BACK COVER
+{
+left: `<div class="page-inner" style="background:#f2ead8;">
+  <div style="height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;">
+    <div style="font-family:'Source Sans 3',sans-serif;font-size:7.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px;">Editorial Standards</div>
+    <div style="height:1px;background:var(--rule-thick);width:60px;margin:0 auto 12px;"></div>
+    <div style="font-family:'EB Garamond',serif;font-size:clamp(10px,1.9vw,12.5px);line-height:1.65;color:var(--ink-soft);max-width:220px;">
+      Every story is drawn from peer-reviewed journals, national scientific institutions, and verified releases from NASA, ESA, UCSF, Oxford, the IUCN, WWF, and Ember. All stories cross-referenced from at least two independent sources. No advertising. No sponsored content. No preliminary studies accepted without disclosure.
+    </div>
+    <div style="height:1px;background:var(--rule);width:80px;margin:14px auto;"></div>
+    <div style="font-family:'Source Sans 3',sans-serif;font-size:7px;color:var(--ink-muted);letter-spacing:.08em;text-transform:uppercase;">Published every Sunday · Free to all, forever</div>
+  </div>
+</div>`,
+right: `<div class="page-inner" style="background:#1a1612;justify-content:center;align-items:center;text-align:center;">
+  <div style="padding:20px 18px;">
+    <div style="font-family:'Playfair Display',serif;font-size:clamp(18px,4vw,26px);font-weight:900;color:#f2ead8;line-height:.95;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:10px;">The Feel-Good<br>Sunday<br>Dispatch</div>
+    <div style="height:1px;background:#8b7355;margin:10px 0;width:70px;"></div>
+    <div style="font-family:'EB Garamond',serif;font-style:italic;font-size:clamp(9px,1.8vw,11px);color:#b8860b;line-height:1.4;letter-spacing:.01em;margin-bottom:10px;">All the Good News<br>That Mattered This Week</div>
+    <div style="height:1px;background:#8b7355;margin:10px 0;width:70px;"></div>
+    <div style="font-family:'EB Garamond',serif;font-size:clamp(10.5px,2vw,13px);color:#c8b89a;line-height:1.75;text-align:left;">
+      <p style="margin-bottom:.9em;">We live in an age that has learned to profit from our anxiety. The feed never ends. The dread never lifts. It is easy, in this noise, to believe that the world is only breaking.</p>
+      <p style="margin-bottom:.9em;">But it is not. Right now, a researcher is seeing a result she has waited a decade for. A species once lost is learning to be wild again. A surgeon is attempting something never attempted before. A child is understanding something for the first time.</p>
+      <p>None of this trends. It simply happens — quietly, in the hands of people who decided their corner of the world was worth fighting for. That is what this paper exists to find. You are not a bystander to history. You are living through one of the most remarkable periods of human discovery ever recorded. Come back next Sunday.</p>
+    </div>
+    <div style="height:1px;background:#8b7355;margin:12px 0;width:70px;"></div>
+    <div style="font-family:'Source Sans 3',sans-serif;font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:#4a3a28;">Vol. II · Sunday 29 March 2026 · 10:00 GMT+2</div>
+  </div>
+</div>`
+}
+
+]; // end spreads
+
+// ─────────────────────────────────────────
+// BOOK ENGINE — rAF physics-based page flip
+// ─────────────────────────────────────────
+const book = document.getElementById('book');
+const navBar = document.getElementById('nav-bar');
+const curPgEl = document.getElementById('cur-pg');
+const totPgEl = document.getElementById('tot-pg');
+let currentSpread = 0;
+const totalSpreads = spreads.length;
+let isFlipping = false;
+
+totPgEl.textContent = totalSpreads;
+
+// Easing: smooth cubic in-out
+function easeInOut(t) {
+  return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+}
+
+// Easing: slightly fast-start, slow finish (realistic page feel)
+function easePageFlip(t) {
+  // Quick initial acceleration, slow graceful landing
+  if (t < 0.4) return 0.5 * Math.pow(t / 0.4, 1.6);
+  return 0.5 + 0.5 * easeInOut((t - 0.4) / 0.6);
+}
+
+function buildBook() {
+  book.innerHTML = '';
+  spreads.forEach((spread, i) => {
+    // Left page
+    const leftPage = document.createElement('div');
+    leftPage.className = 'page left-page';
+    leftPage.id = 'spread-' + i + '-left';
+    leftPage.innerHTML = `
+      <div class="page-back-face"></div>
+      <div class="page-inner">${spread.left}</div>
+      <div class="flip-shadow" id="shadow-\${i}-left"></div>
+      ${i > 0 ? '<div class="flip-corner-back" onclick="flipBackward()"></div>' : ''}`;
+    leftPage.style.zIndex = totalSpreads - i;
+
+    // Right page
+    const rightPage = document.createElement('div');
+    rightPage.className = 'page right-page';
+    rightPage.id = 'spread-' + i + '-right';
+    rightPage.innerHTML = `
+      <div class="page-back-face"></div>
+      <div class="page-inner">${spread.right}</div>
+      <div class="flip-shadow" id="shadow-\${i}-right"></div>
+      ${i < spreads.length - 1 ? '<div class="flip-corner" onclick="flipForward()"></div>' : ''}`;
+    rightPage.style.zIndex = totalSpreads - i;
+
+    book.appendChild(leftPage);
+    book.appendChild(rightPage);
+  });
+
+  buildNav();
+  showSpread(0);
+}
+
+function buildNav() {
+  navBar.innerHTML = '';
+  spreads.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Spread ' + (i+1));
+    dot.onclick = () => { if (!isFlipping) goToSpread(i); };
+    navBar.appendChild(dot);
+  });
+}
+
+function showSpread(index) {
+  spreads.forEach((_, i) => {
+    const lp = document.getElementById('spread-' + i + '-left');
+    const rp = document.getElementById('spread-' + i + '-right');
+    if (!lp || !rp) return;
+
+    if (i < index) {
+      // Past spreads: flipped away, low z-index
+      lp.style.transform = 'rotateY(-180deg)';
+      rp.style.transform = 'rotateY(-180deg)';
+      lp.style.zIndex = i + 1;
+      rp.style.zIndex = i + 1;
+    } else if (i === index) {
+      // Current spread: always on top
+      lp.style.transform = 'rotateY(0deg)';
+      rp.style.transform = 'rotateY(0deg)';
+      lp.style.zIndex = totalSpreads + 10;
+      rp.style.zIndex = totalSpreads + 10;
+    } else {
+      // Future spreads: flat and behind current
+      lp.style.transform = 'rotateY(0deg)';
+      rp.style.transform = 'rotateY(0deg)';
+      lp.style.zIndex = totalSpreads - i;
+      rp.style.zIndex = totalSpreads - i;
+    }
+
+    // Clear any shadows
+    const sl = document.getElementById('shadow-' + i + '-left');
+    const sr = document.getElementById('shadow-' + i + '-right');
+    if (sl) sl.style.background = 'transparent';
+    if (sr) sr.style.background = 'transparent';
+  });
+  document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+  curPgEl.textContent = index + 1;
+  currentSpread = index;
+  // Reset scroll to top on newly visible pages
+  const lEl = document.getElementById('spread-' + index + '-left');
+  const rEl = document.getElementById('spread-' + index + '-right');
+  if (lEl) { const pi = lEl.querySelector('.page-inner'); if (pi) pi.scrollTop = 0; }
+  if (rEl) { const pi = rEl.querySelector('.page-inner'); if (pi) pi.scrollTop = 0; }
+}
+
+// ── CORE FLIP FUNCTION ──
+// dir: 1 = forward, -1 = backward
+// duration in ms
+function animateFlip(dir, duration) {
+  if (isFlipping) return;
+  const next = currentSpread + dir;
+  if (next < 0 || next >= totalSpreads) return;
+
+  isFlipping = true;
+
+  // The pages that will physically turn
+  const flipSpreadIdx = dir === 1 ? currentSpread : next;
+  const lp = document.getElementById('spread-' + flipSpreadIdx + '-left');
+  const rp = document.getElementById('spread-' + flipSpreadIdx + '-right');
+  const sl = document.getElementById('shadow-' + flipSpreadIdx + '-left');
+  const sr = document.getElementById('shadow-' + flipSpreadIdx + '-right');
+
+  if (!lp || !rp) { isFlipping = false; return; }
+
+  // Starting and ending angles
+  const startAngle = dir === 1 ? 0 : -180;
+  const endAngle   = dir === 1 ? -180 : 0;
+
+  // Lift flipping pages to top
+  lp.style.zIndex = 1000;
+  rp.style.zIndex = 1001;
+
+  // The page underneath that becomes current — give it high z-index so it's visible
+  const underSpread = dir === 1 ? next : currentSpread;
+  const ulp = document.getElementById('spread-' + underSpread + '-left');
+  const urp = document.getElementById('spread-' + underSpread + '-right');
+  if (ulp) { ulp.style.zIndex = totalSpreads + 9; ulp.style.transform = 'rotateY(0deg)'; }
+  if (urp) { urp.style.zIndex = totalSpreads + 9; urp.style.transform = 'rotateY(0deg)'; }
+
+  const startTime = performance.now();
+
+  function frame(now) {
+    const elapsed = now - startTime;
+    const rawT = Math.min(elapsed / duration, 1);
+    const t = easePageFlip(rawT);
+    const angle = startAngle + (endAngle - startAngle) * t;
+
+    lp.style.transform = `rotateY(${angle}deg)`;
+    rp.style.transform = `rotateY(${angle}deg)`;
+
+    // Dynamic shadow — peaks at 90 degrees (t ≈ 0.5)
+    // sin curve: 0 at start, max at mid, 0 at end
+    const shadowIntensity = Math.sin(rawT * Math.PI);
+    const shadowAlpha = shadowIntensity * 0.45;
+
+    if (dir === 1) {
+      // Forward flip: right page folds left — shadow on right side of left page, left side of right page
+      if (sl) sl.style.background = `linear-gradient(to left, rgba(0,0,0,${shadowAlpha * 0.6}) 0%, transparent 70%)`;
+      if (sr) sr.style.background = `linear-gradient(to right, rgba(0,0,0,${shadowAlpha}) 0%, transparent 60%)`;
+    } else {
+      // Backward flip: left page unfolds from left
+      if (sl) sl.style.background = `linear-gradient(to right, rgba(0,0,0,${shadowAlpha}) 0%, transparent 60%)`;
+      if (sr) sr.style.background = `linear-gradient(to left, rgba(0,0,0,${shadowAlpha * 0.6}) 0%, transparent 70%)`;
+    }
+
+    // Subtle scale: page very slightly thins at peak (foreshortening illusion)
+    const scaleX = 1 - 0.015 * shadowIntensity;
+    lp.style.transform = `rotateY(${angle}deg) scaleX(${scaleX})`;
+    rp.style.transform = `rotateY(${angle}deg) scaleX(${scaleX})`;
+
+    if (rawT < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      // Snap to final state
+      lp.style.transform = `rotateY(${endAngle}deg)`;
+      rp.style.transform = `rotateY(${endAngle}deg)`;
+      lp.style.transform += ' scaleX(1)';
+      rp.style.transform += ' scaleX(1)';
+      if (sl) sl.style.background = 'transparent';
+      if (sr) sr.style.background = 'transparent';
+
+      // Rebuild z-indices cleanly
+      showSpread(next);
+      isFlipping = false;
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function flipForward()  { animateFlip(1,  820); }
+function flipBackward() { animateFlip(-1, 820); }
+
+function goToSpread(index) {
+  if (isFlipping) return;
+  showSpread(index);
+}
+
+// ── SWIPE ──
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+const bw = document.getElementById('book-wrap');
+
+bw.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+}, { passive: true });
+
+bw.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+  // Only flip on clearly horizontal swipes — don't interfere with vertical scroll
+  if (Math.abs(dx) > Math.abs(dy) * 1.6 && Math.abs(dx) > 44) {
+    const speed = Math.abs(dx) / dt;
+    const dur = Math.max(480, Math.min(900, 820 - speed * 200));
+    if (dx < 0) animateFlip(1, dur);
+    else animateFlip(-1, dur);
+  }
+}, { passive: true });
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') flipForward();
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   flipBackward();
+});
+
+// ── CORNER HOVER PEEK (subtle lift before click) ──
+function addCornerPeek(cornerEl, dir) {
+  if (!cornerEl) return;
+  let peekAnim = null;
+  let peeking = false;
+
+  cornerEl.addEventListener('mouseenter', () => {
+    if (isFlipping) return;
+    peeking = true;
+    const spreadIdx = dir === 1 ? currentSpread : currentSpread - 1;
+    if (spreadIdx < 0 || spreadIdx >= totalSpreads) return;
+    const page = document.getElementById('spread-' + spreadIdx + (dir === 1 ? '-right' : '-left'));
+    if (!page) return;
+    let t = 0;
+    const target = dir === 1 ? -8 : -172; // small peek angle
+    const start = dir === 1 ? 0 : -180;
+    const run = () => {
+      if (!peeking) return;
+      t = Math.min(t + 0.06, 1);
+      const angle = start + (target - start) * easeInOut(t);
+      page.style.transform = `rotateY(${angle}deg)`;
+      page.style.zIndex = 1000;
+      if (t < 1) peekAnim = requestAnimationFrame(run);
+    };
+    peekAnim = requestAnimationFrame(run);
+  });
+
+  cornerEl.addEventListener('mouseleave', () => {
+    peeking = false;
+    if (peekAnim) cancelAnimationFrame(peekAnim);
+    if (isFlipping) return;
+    const spreadIdx = dir === 1 ? currentSpread : currentSpread - 1;
+    if (spreadIdx < 0 || spreadIdx >= totalSpreads) return;
+    const page = document.getElementById('spread-' + spreadIdx + (dir === 1 ? '-right' : '-left'));
+    if (!page) return;
+    // Spring back
+    const currentAngle = parseFloat(page.style.transform.replace('rotateY(','')) || 0;
+    const final = dir === 1 ? 0 : -180;
+    let t2 = 0;
+    const springBack = () => {
+      t2 = Math.min(t2 + 0.08, 1);
+      const angle = currentAngle + (final - currentAngle) * easeInOut(t2);
+      page.style.transform = `rotateY(${angle}deg)`;
+      if (t2 < 1) requestAnimationFrame(springBack);
+      else { page.style.transform = `rotateY(${final}deg)`; showSpread(currentSpread); }
+    };
+    requestAnimationFrame(springBack);
+  });
+}
+
+// Init
+buildBook();
+
+// Add peek after build (corners are dynamically created inside page content)
+// Delegate via document since corners are in page HTML
+document.addEventListener('mouseenter', e => {
+  if (e.target && e.target.classList && e.target.classList.contains('flip-corner')) {
+    addCornerPeek(e.target, 1);
+  }
+  if (e.target && e.target.classList && e.target.classList.contains('flip-corner-back')) {
+    addCornerPeek(e.target, -1);
+  }
+}, true);
+
+// Hide loading
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const loading = document.getElementById('loading');
+    loading.style.opacity = '0';
+    setTimeout(() => loading.remove(), 600);
+  }, 1500);
+});
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

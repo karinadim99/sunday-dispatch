@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Sage green background -->
+  <rect width="192" height="192" fill="#6e7260" rx="32"/>
+
+  <!-- Paper pages — slight offset for depth -->
+  <rect x="28" y="34" width="136" height="124" fill="#e8dfc8" rx="5"/>
+  <rect x="32" y="30" width="136" height="124" fill="#f9f5ec" rx="4"/>
+
+  <!-- Masthead top rule — thick -->
+  <rect x="32" y="30" width="136" height="5" fill="#1a1612" rx="2"/>
+
+  <!-- Thin rule below masthead -->
+  <rect x="32" y="44" width="136" height="1" fill="#8b7355"/>
+
+  <!-- "THE" small caps above title -->
+  <text x="100" y="58" text-anchor="middle" font-family="Georgia, serif" font-size="9" font-weight="700" fill="#8b7355" letter-spacing="5">THE</text>
+
+  <!-- "FG" monogram — large display -->
+  <text x="100" y="108" text-anchor="middle" font-family="Georgia, serif" font-size="52" font-weight="900" fill="#1a1612" letter-spacing="-3">FG</text>
+
+  <!-- Thin divider rule -->
+  <rect x="56" y="116" width="88" height="1" fill="#8b7355"/>
+
+  <!-- "SUNDAY" -->
+  <text x="100" y="128" text-anchor="middle" font-family="Georgia, serif" font-size="9" font-weight="700" fill="#3d3830" letter-spacing="4">SUNDAY</text>
+
+  <!-- "DISPATCH" -->
+  <text x="100" y="141" text-anchor="middle" font-family="Georgia, serif" font-size="9" font-weight="700" fill="#3d3830" letter-spacing="2.5">DISPATCH</text>
+
+  <!-- Bottom accent rule — accent red -->
+  <rect x="32" y="151" width="136" height="3" fill="#8b1a1a" rx="1"/>
+</svg>
