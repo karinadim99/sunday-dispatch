@@ -1,7 +1,7 @@
 {
-  "name": "The Feel-Good Sunday Dispatch",
-  "short_name": "Sunday Dispatch",
-  "description": "All the Good News That Mattered This Week — verified, every Sunday.",
+  "name": "The Long Light",
+  "short_name": "The Long Light",
+  "description": "The Long Light — All the Good News That Mattered This Week, verified every Sunday.",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#1a1612",
